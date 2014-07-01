@@ -1,0 +1,16 @@
+body {
+	margin: 0px;
+	padding: 0px;
+	overflow: hidden;
+}
+
+canvas {
+	display: block; /* fix necessary to remove space at bottom of canvas */
+	vertical-align: top;
+}
+
+#stats {
+	position: absolute;
+	top: 0;
+	left: 0;	
+}
