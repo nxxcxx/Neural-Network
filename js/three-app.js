@@ -1,4 +1,4 @@
-
+"use strict";
 
 (function main() {
 
@@ -7,7 +7,7 @@
 	var Vec3 = THREE.Vector3;
 
 	var container, stats, controls;
-	var scene, light, camera, renderer;
+	var scene, light, camera, cameraCtrl, renderer;
 
 	// scene
 	container = document.getElementById('canvas-container');
