@@ -346,6 +346,8 @@
 		// initialize NN
 		this.init();
 
+		console.log('initialized');
+
 	}
 
 	NeuralNetwork.prototype.init = function () {
