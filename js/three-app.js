@@ -78,7 +78,6 @@
 	Neuron.prototype.createSignal = function (particlePool, minSpeed, maxSpeed) {
 
 		this.firedCount += 1;
-
 		this.recievedSignal = false;
 
 		var signals = [];
@@ -346,8 +345,6 @@
 		// initialize NN
 		this.init();
 
-		console.log('initialized');
-
 	}
 
 	NeuralNetwork.prototype.init = function () {
@@ -422,6 +419,8 @@
 			// ------ end init axons
 
 			self.initialized = true;
+
+			console.log('initialized');
 
 		});
 
