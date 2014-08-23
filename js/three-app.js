@@ -421,6 +421,7 @@
 			self.initialized = true;
 
 			console.log('initialized');
+			document.getElementById('loading').style.display = 'none';	// hide loading animation when finish loading model
 
 		});
 
@@ -544,7 +545,6 @@
 
 
 	var neuralNet = new NeuralNetwork();
-	console.log(neuralNet);
 
 
 	// ---------- GUI ----------
