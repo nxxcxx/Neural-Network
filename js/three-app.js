@@ -156,7 +156,7 @@
 
 		this.offScreenPos = new Vec3(9999, 9999, 9999);
 
-		this.pColor = 0x0077ff;
+		this.pColor = 0xff4400;
 		this.pSize = 0.6;
 
 		for (var ii=0; ii<this.poolSize; ii++) {
@@ -308,7 +308,7 @@
 
 		// axon 
 		this.axonOpacity = 0.09;
-		this.axonColor = 0xaaddff;
+		this.axonColor = 0x22aaff;
 		this.axonGeom = new THREE.BufferGeometry();
 		this.axonMat = new THREE.LineBasicMaterial( { 
 			color: this.axonColor, 
