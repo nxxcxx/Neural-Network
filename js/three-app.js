@@ -307,8 +307,8 @@
 		this.allAxons = [];
 
 		// axon 
-		this.axonOpacity = 0.09;
-		this.axonColor = 0x22aaff;
+		this.axonOpacity = 0.1;
+		this.axonColor = 0x0099ff;
 		this.axonGeom = new THREE.BufferGeometry();
 		this.axonMat = new THREE.LineBasicMaterial( { 
 			color: this.axonColor, 
@@ -540,7 +540,7 @@
 
 	var scene_settings = {
 		pause: false,
-		bgColor: 0x111113
+		bgColor: 0x0d0d0f
 	};
 
 

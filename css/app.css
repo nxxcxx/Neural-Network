@@ -15,6 +15,20 @@ canvas {
 	left: 0;	
 }
 
+#about {
+	color: #fff;
+	position: absolute;
+	bottom: 0px;
+}
+
+a:visited {
+	color: #fff;
+}
+
+a {
+	text-decoration: none;
+}
+
 /* loading animation */
 
 #loading {
