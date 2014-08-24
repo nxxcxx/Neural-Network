@@ -2,7 +2,10 @@
 
 (function main() {
 
-	if (!Detector.webgl) Detector.addGetWebGLMessage();
+	if (!Detector.webgl) {
+		Detector.addGetWebGLMessage();
+		document.getElementById('loading').style.display = 'none';	// hide loading animation when finish loading model
+	}
 	
 	var Vec3 = THREE.Vector3;
 
