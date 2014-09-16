@@ -21,6 +21,38 @@
 
 	<div id="canvas-container"></div>
 
+
+	<script type="x-shader/x-vertex" id="vertexshader">
+
+
+		attribute float opacityAttr;
+
+		varying float opacityNew;
+
+		void main() {
+
+			opacityNew = opacityAttr;
+
+			gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0 );
+
+		}
+
+	</script>
+
+	<script type="x-shader/x-fragment" id="fragmentshader">
+
+		uniform vec3 color;
+
+		varying float opacityNew;
+		
+		void main() {
+			gl_FragColor = vec4(color, opacityNew);
+		}
+
+	</script>
+
+
+
 	<script src="js/vendor/Detector.js"></script>
 	<script src="js/vendor/dat.gui.min.js"></script>
 	<script src="js/vendor/stats.min.js"></script>
