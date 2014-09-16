@@ -157,7 +157,7 @@
 		this.pGeom = new THREE.Geometry();
 		this.particles = this.pGeom.vertices;
 
-		this.offScreenPos = new Vec3(9999, 9999, 9999);
+		this.offScreenPos = new Vec3(9999, 9999, 9999);	// ################# since version r68 PointCloud default frustumCull = true, so need to set to 'false' for this to work with oppScreenPos, else particles will dissappear
 
 		this.pColor = 0xff4400;
 		this.pSize = 0.6;
@@ -166,8 +166,8 @@
 			this.particles[ii] = new Particle(this);
 		}
 
-		this.pMat = new THREE.ParticleSystemMaterial({ 
-			map: spriteTextureSignal, 
+		this.pMat = new THREE.PointCloudMaterial({ 
+			map: spriteTextureSignal,
 			size: this.pSize,
 			color: this.pColor,
 			blending: THREE.AdditiveBlending,
@@ -175,13 +175,14 @@
 			transparent: true
 		});
 
-		this.pMesh = new THREE.ParticleSystem(this.pGeom, this.pMat);
+		this.pMesh = new THREE.PointCloud(this.pGeom, this.pMat);
+		this.pMesh.frustumCulled = false;
 
 		scene.add(this.pMesh);
 
 
 		// outer particle glow
-		this.pMat_outer = new THREE.ParticleSystemMaterial({ 
+		this.pMat_outer = new THREE.PointCloudMaterial({ 
 			map: spriteTextureSignal, 
 			size: this.pSize*10,
 			color: this.pColor,
@@ -191,7 +192,9 @@
 			opacity: 0.025
 		});
 
-		this.pMesh_outer = new THREE.ParticleSystem(this.pGeom, this.pMat_outer);
+		this.pMesh_outer = new THREE.PointCloud(this.pGeom, this.pMat_outer);
+		this.pMesh_outer.frustumCulled = false; // ################# since version r68 PointCloud default frustumCull = true, so need to set to 'false' for this to work with oppScreenPos, else particles will dissappear
+		console.log(this.pMesh_outer);
 
 		scene.add(this.pMesh_outer);
 
@@ -362,7 +365,7 @@
 		this.neuronColor = 0x0088ff;
 		this.neuronOpacity = 1.0;
 		this.neuronsGeom = new THREE.Geometry();
-		this.neuronMaterial = new THREE.ParticleSystemMaterial({ 
+		this.neuronMaterial = new THREE.PointCloudMaterial({ 
 			map: this.spriteTextureNeuron, 
 			size: this.neuronSize, 
 			color: this.neuronColor,
@@ -414,7 +417,7 @@
 			}
 
 			// neuron mesh
-			self.neuronParticles = new THREE.ParticleSystem(self.neuronsGeom, self.neuronMaterial);
+			self.neuronParticles = new THREE.PointCloud(self.neuronsGeom, self.neuronMaterial);
 			scene.add(self.neuronParticles);
 
 			//------ init axons
@@ -437,22 +440,49 @@
 
 			// *** attirbute size must bigger than its content ***
 
+
+			var axonIndices = new Uint32Array(self.axonIndices.length);
+			var axonPositions = new Float32Array(self.axonPositions.length);
+			var axonOpacities = new Float32Array(self.shaderAttributes.opacityAttr.value.length);
+
+			for (i=0; i<axonIndices.length; i++) {
+				axonIndices[i] = self.axonIndices[i];
+			}
+
+			for (i=0; i<axonPositions.length; i++) {
+				axonPositions[i] = self.axonPositions[i];
+			}
+
+			for (i=0; i<axonOpacities.length; i++) {
+				axonOpacities[i] = self.shaderAttributes.opacityAttr.value[i];
+			}
+
+			self.axonGeom.addAttribute( 'index', new THREE.BufferAttribute(axonIndices, 1) );
+			self.axonGeom.addAttribute( 'position', new THREE.BufferAttribute(axonPositions, 3) );
+			self.axonGeom.addAttribute( 'opacityAttr', new THREE.BufferAttribute(axonOpacities, 1) );
+
+
 			// axons buffer attributes
-			var AxonBufferIndicesAttr = new THREE.Uint32Attribute(self.axonIndices.length, 1);
-			AxonBufferIndicesAttr.set(self.axonIndices);
+			// var AxonBufferIndicesAttr = new THREE.BufferAttribute(self.axonIndices.length, 1);
+			// AxonBufferIndicesAttr.set(self.axonIndices);
 
-			var AxonPositionAttr = new THREE.Float32Attribute(self.axonPositions.length, 3);
-			AxonPositionAttr.set(self.axonPositions);
-
-
-			var AxonOpacityAttr = new THREE.Float32Attribute(self.shaderAttributes.opacityAttr.value.length, 1);
-			AxonOpacityAttr.set(self.shaderAttributes.opacityAttr.value);
+			// var AxonPositionAttr = new THREE.BufferAttribute(self.axonPositions.length, 3);
+			// AxonPositionAttr.set(self.axonPositions);
 
 
+			// var AxonOpacityAttr = new THREE.BufferAttribute(self.shaderAttributes.opacityAttr.value.length, 1);
+			// AxonOpacityAttr.set(self.shaderAttributes.opacityAttr.value);
 
-			self.axonGeom.addAttribute('index', AxonBufferIndicesAttr);
-			self.axonGeom.addAttribute('position', AxonPositionAttr);
-			self.axonGeom.addAttribute('opacityAttr', AxonOpacityAttr);
+
+
+			// self.axonGeom.addAttribute('index', AxonBufferIndicesAttr);
+			// self.axonGeom.addAttribute('position', AxonPositionAttr);
+			// self.axonGeom.addAttribute('opacityAttr', AxonOpacityAttr);
+
+
+
+
+			
 
 
 
@@ -520,8 +550,8 @@
 			n.recievedSignal = false;	// if neuron recieved signal but still in delay reset it
 		}
 
-		// reset all neurons and when there is x signal
-		if (this.allSignals.length === 0) {
+		// reset all neurons and when there is X signal
+		if (this.allSignals.length < 500) {
 
 			for (ii=0; ii<this.allNeurons.length; ii++) {	// reset all neuron state
 				n = this.allNeurons[ii];
