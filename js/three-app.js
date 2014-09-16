@@ -571,7 +571,7 @@
 
 
 		// &&^^
-		var opacity = THREE.Math.randFloat(0.005, 0.2);
+		// var opacity = THREE.Math.randFloat(0.005, 0.2);
 
 
 		for (var i=0; i<numVerts; i++) {
@@ -582,7 +582,7 @@
 				this.axonIndices.push(idx, idx+1);
 
 				// &&&&&&&&&&&&&&&&&&&&&^^^^^^^^^^^^^^^^^^^^^
-				// var opacity = THREE.Math.randFloat(0.01, 0.2);
+				var opacity = THREE.Math.randFloat(0.01, 0.2);
 				this.shaderAttributes.opacityAttr.value.push(opacity, opacity);
 
 
