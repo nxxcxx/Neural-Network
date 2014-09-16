@@ -18,7 +18,9 @@ canvas {
 #about {
 	color: #fff;
 	position: absolute;
-	bottom: 0px;
+	bottom: 5px;
+	left: 5px;
+	font-style: italic;
 }
 
 a:visited {
