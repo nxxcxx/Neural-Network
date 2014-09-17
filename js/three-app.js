@@ -176,7 +176,7 @@
 		});
 
 		this.pMesh = new THREE.PointCloud(this.pGeom, this.pMat);
-		this.pMesh.frustumCulled = false;
+		this.pMesh.frustumCulled = false; // ################# since version r68 PointCloud default frustumCull = true, so need to set to 'false' for this to work with oppScreenPos, else particles will dissappear
 
 		scene.add(this.pMesh);
 
@@ -551,7 +551,7 @@
 		}
 
 		// reset all neurons and when there is X signal
-		if (this.allSignals.length < 500) {
+		if (this.allSignals.length <= 0) {
 
 			for (ii=0; ii<this.allNeurons.length; ii++) {	// reset all neuron state
 				n = this.allNeurons[ii];
