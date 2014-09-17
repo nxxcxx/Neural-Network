@@ -412,8 +412,8 @@
 					self.shaderMaterial = new THREE.ShaderMaterial( {
 						uniforms:       self.shaderUniforms,
 						attributes:     self.shaderAttributes,
-						vertexShader:   document.getElementById('vertexshader').textContent,
-						fragmentShader: document.getElementById('fragmentshader').textContent,
+						vertexShader:   document.getElementById('vertexshader-axon').textContent,
+						fragmentShader: document.getElementById('fragmentshader-axon').textContent,
 						blending:       THREE.AdditiveBlending,
 						// depthTest:      false,
 						transparent:    true,
