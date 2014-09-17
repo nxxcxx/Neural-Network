@@ -23,13 +23,11 @@ canvas {
 	font-style: italic;
 }
 
-a:visited {
+a, a:visited {
 	color: #fff;
-}
-
-a {
 	text-decoration: none;
 }
+
 
 /* loading animation */
 
