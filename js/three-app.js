@@ -391,11 +391,11 @@
 					var axonOpacities = new Float32Array(self.shaderAttributes.opacityAttr.value.length);
 
 
-					transferToBufferArray(self.axonIndices, axonIndices);
-					transferToBufferArray(self.axonPositions, axonPositions);
-					transferToBufferArray(self.shaderAttributes.opacityAttr.value, axonOpacities);
+					transferToArrayBuffer(self.axonIndices, axonIndices);
+					transferToArrayBuffer(self.axonPositions, axonPositions);
+					transferToArrayBuffer(self.shaderAttributes.opacityAttr.value, axonOpacities);
 
-					function transferToBufferArray(fromArr, toArr) {
+					function transferToArrayBuffer(fromArr, toArr) {
 						for (i=0; i<toArr.length; i++) {
 							toArr[i] = fromArr[i];
 						}
