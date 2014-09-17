@@ -390,16 +390,15 @@
 					var axonPositions = new Float32Array(self.axonPositions.length);
 					var axonOpacities = new Float32Array(self.shaderAttributes.opacityAttr.value.length);
 
-					for (i=0; i<axonIndices.length; i++) {
-						axonIndices[i] = self.axonIndices[i];
-					}
 
-					for (i=0; i<axonPositions.length; i++) {
-						axonPositions[i] = self.axonPositions[i];
-					}
+					transferToBufferArray(self.axonIndices, axonIndices);
+					transferToBufferArray(self.axonPositions, axonPositions);
+					transferToBufferArray(self.shaderAttributes.opacityAttr.value, axonOpacities);
 
-					for (i=0; i<axonOpacities.length; i++) {
-						axonOpacities[i] = self.shaderAttributes.opacityAttr.value[i];
+					function transferToBufferArray(fromArr, toArr) {
+						for (i=0; i<toArr.length; i++) {
+							toArr[i] = fromArr[i];
+						}
 					}
 
 					self.axonGeom.addAttribute( 'index', new THREE.BufferAttribute(axonIndices, 1) );
