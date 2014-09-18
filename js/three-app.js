@@ -214,7 +214,7 @@
 			this.bezierSubdivision = 12;
 			this.neuronA = neuronA;
 			this.neuronB = neuronB;
-			this.cpLength = neuronA.distanceTo(neuronB) / 3.0;
+			this.cpLength = neuronA.distanceTo(neuronB) / THREE.Math.randFloat(1.5, 4.0);
 			this.controlPointA = this.getControlPoint(neuronA, neuronB);
 			this.controlPointB = this.getControlPoint(neuronB, neuronA);
 			THREE.CubicBezierCurve3.call(this, this.neuronA, this.controlPointA, this.controlPointB, this.neuronB);
@@ -509,7 +509,7 @@
 			var numVerts = vertices.length;
 
 			// &&&&&&&&&&&&&&&&&&&&&^^^^^^^^^^^^^^^^^^^^^
-			var opacity = THREE.Math.randFloat(0.005, 0.2);
+			var opacity = THREE.Math.randFloat(0.05, 0.2);
 
 			for (var i=0; i<numVerts; i++) {
 
@@ -519,9 +519,7 @@
 					var idx = this.axonNextPositionsIndex;
 					this.axonIndices.push(idx, idx+1);
 
-
 					this.shaderAttributes.opacityAttr.value.push(opacity, opacity);
-
 
 				}
 
