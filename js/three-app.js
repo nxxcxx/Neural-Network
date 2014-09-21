@@ -4,7 +4,7 @@
 
 
 	// Neuron ----------------------------------------------------------------
-	
+
 		function Neuron(x, y, z) {
 
 			this.connection = [];
@@ -37,7 +37,7 @@
 			this.recievedSignal = false;
 
 			var signals = [];
-			// create signal to all axons
+			// create signal to all connected axons
 			for (var i=0; i<this.connection.length; i++) {
 				if (this.connection[i].axon !== this.prevReleaseAxon) {
 					var c = new Signal(particlePool, minSpeed, maxSpeed);
@@ -48,7 +48,7 @@
 			return signals;
 
 		};
-	
+
 	// Signal ----------------------------------------------------------------
 
 		function Signal(particlePool, minSpeed, maxSpeed) {
@@ -99,7 +99,8 @@
 			}
 
 			pos = this.axon.getPoint(this.t);
-			// pos = this.axon.getPointAt(this.t);	// uniform speed but slower calculation
+			// pos = this.axon.getPointAt(this.t);	// uniform point distribution but slower calculation
+
 			this.particle.set(pos.x, pos.y, pos.z);
 
 		};
@@ -124,7 +125,7 @@
 			}
 
 			// inner particle
-			this.pMat = new THREE.PointCloudMaterial({ 
+			this.pMat = new THREE.PointCloudMaterial({
 				map: this.spriteTextureSignal,
 				size: this.pSize,
 				color: this.pColor,
@@ -140,8 +141,8 @@
 
 
 			// outer particle glow
-			this.pMat_outer = new THREE.PointCloudMaterial({ 
-				map: this.spriteTextureSignal, 
+			this.pMat_outer = new THREE.PointCloudMaterial({
+				map: this.spriteTextureSignal,
 				size: this.pSize*10,
 				color: this.pColor,
 				blending: THREE.AdditiveBlending,
@@ -191,7 +192,7 @@
 		// Private class for particle pool
 
 		function Particle(particlePool) {
-			
+
 			this.particlePool = particlePool;
 			this.available = true;
 			THREE.Vector3.call(this, particlePool.offScreenPos.x, particlePool.offScreenPos.y, particlePool.offScreenPos.z);
@@ -211,7 +212,7 @@
 
 		function Axon(neuronA, neuronB) {
 
-			this.bezierSubdivision = 12;
+			this.bezierSubdivision = 8;
 			this.neuronA = neuronA;
 			this.neuronB = neuronB;
 			this.cpLength = neuronA.distanceTo(neuronB) / THREE.Math.randFloat(1.5, 4.0);
@@ -281,38 +282,31 @@
 			this.allAxons = [];
 
 			// axon
-			this.axonOpacity = 0.1;
+			this.axonOpacityMultiplier = 1.0;
 			this.axonColor = 0x0099ff;
 			this.axonGeom = new THREE.BufferGeometry();
-			this.axonMat = new THREE.LineBasicMaterial({ 
-				color: this.axonColor, 
-				linewidth: 1, 
-				opacity: this.axonOpacity, 
-				transparent: true,
-				blending: THREE.AdditiveBlending
-			});
 			this.axonPositions = [];
 			this.axonIndices = [];
 			this.axonNextPositionsIndex = 0;
 
 			this.shaderUniforms = {
-				opacity:   { type: 'f', value: this.axonOpacity },
-				color:     { type: 'c', value: new THREE.Color( this.axonColor ) }
+				color:             { type: 'c', value: new THREE.Color( this.axonColor ) },
+				opacityMultiplier: { type: 'f', value: 1.0 }
 			};
 
 			this.shaderAttributes = {
-				opacityAttr: { type: 'f', value: [] }
+				opacityAttr:       { type: 'f', value: [] }
 			};
 
 			// neuron
 			this.neuronSize = 0.7;
 			this.spriteTextureNeuron = THREE.ImageUtils.loadTexture( "sprites/electric.png" );
-			this.neuronColor = 0x0088ff;
+			this.neuronColor = 0x00ffff;
 			this.neuronOpacity = 1.0;
 			this.neuronsGeom = new THREE.Geometry();
-			this.neuronMaterial = new THREE.PointCloudMaterial({ 
-				map: this.spriteTextureNeuron, 
-				size: this.neuronSize, 
+			this.neuronMaterial = new THREE.PointCloudMaterial({
+				map: this.spriteTextureNeuron,
+				size: this.neuronSize,
 				color: this.neuronColor,
 				blending: THREE.AdditiveBlending,
 				depthTest: false,
@@ -326,106 +320,34 @@
 			this.numSignals = 0;
 
 			// initialize NN
-			this.init();
+			this.initNeuralNetwork();
 
 		}
 
-		NeuralNetwork.prototype.init = function () {
+		NeuralNetwork.prototype.initNeuralNetwork = function () {
 
 			// obj loader
 			var self = this;
 			var loadedMesh, loadedMeshVertices;
 			var loader = new THREE.OBJLoader();
 
-			loader.load('models/brain_low.obj', function constructNeuralNetwork(loadedObject) {
+			loader.load('models/brain_vertex.obj', function constructNeuralNetwork(loadedObject) {
 
 				loadedMesh = loadedObject.children[0];
 				loadedMeshVertices = loadedMesh.geometry.vertices;
 
-				// // render loadedMesh
-				// loadedMesh.material = new THREE.MeshBasicMaterial({ 
-				// 	transparent: true, 
-				// 	opacity: 0.05, 
-				// 	depthTest: false,
-				// 	color: 0x0088ff,
-				// 	blending: THREE.AdditiveBlending
-				// });
-				// scene.add(loadedObject);
-
-				//------ init neurons
-
-					for (var i=0; i<loadedMeshVertices.length; i+=self.verticesSkipStep) {
-						var pos = loadedMeshVertices[i];
-						var n = new Neuron(pos.x, pos.y, pos.z);
-						self.allNeurons.push(n);
-						self.neuronsGeom.vertices.push(n);
-					}
-
-					// neuron mesh
-					self.neuronParticles = new THREE.PointCloud(self.neuronsGeom, self.neuronMaterial);
-					scene.add(self.neuronParticles);
-
-				//------ init axons
-
-					var allNeuronsLength = self.allNeurons.length;
-					for (var j=0; j<allNeuronsLength; j++) {
-						var n1 = self.allNeurons[j];
-						for (var k=j+1; k<allNeuronsLength; k++) {
-							var n2 = self.allNeurons[k];
-							// connect neuron if distance ... and limit connection per neuron to not more than x
-							if (n1 !== n2 && n1.distanceTo(n2) < self.maxAxonDist &&
-								n1.connection.length < self.maxConnectionPerNeuron && 
-								n2.connection.length < self.maxConnectionPerNeuron) 
-							{
-								var connectedAxon = n1.connectNeuronTo(n2);
-								self.addAxonToBuffer(connectedAxon);
-							}
-						}
-					}
-
-					// *** attirbute size must bigger than its content ***
-
-
-					var axonIndices = new Uint32Array(self.axonIndices.length);
-					var axonPositions = new Float32Array(self.axonPositions.length);
-					var axonOpacities = new Float32Array(self.shaderAttributes.opacityAttr.value.length);
-
-
-					transferToArrayBuffer(self.axonIndices, axonIndices);
-					transferToArrayBuffer(self.axonPositions, axonPositions);
-					transferToArrayBuffer(self.shaderAttributes.opacityAttr.value, axonOpacities);
-
-					function transferToArrayBuffer(fromArr, toArr) {
-						for (i=0; i<toArr.length; i++) {
-							toArr[i] = fromArr[i];
-						}
-					}
-
-					self.axonGeom.addAttribute( 'index', new THREE.BufferAttribute(axonIndices, 1) );
-					self.axonGeom.addAttribute( 'position', new THREE.BufferAttribute(axonPositions, 3) );
-					self.axonGeom.addAttribute( 'opacityAttr', new THREE.BufferAttribute(axonOpacities, 1) );
-
-
-					// axons mesh
-
-					self.shaderMaterial = new THREE.ShaderMaterial( {
-						uniforms:       self.shaderUniforms,
-						attributes:     self.shaderAttributes,
-						vertexShader:   document.getElementById('vertexshader-axon').textContent,
-						fragmentShader: document.getElementById('fragmentshader-axon').textContent,
-						blending:       THREE.AdditiveBlending,
-						// depthTest:      false,
-						transparent:    true,
+				// render loadedMesh
+					loadedMesh.material = new THREE.MeshBasicMaterial({
+						transparent: true,
+						opacity: 0.05,
+						depthTest: false,
+						color: 0x0088ff,
+						blending: THREE.AdditiveBlending
 					});
+					scene.add(loadedObject);
 
-
-					// self.axonMesh = new THREE.Line(self.axonGeom, self.axonMat, THREE.LinePieces);
-					self.axonMesh = new THREE.Line(self.axonGeom, self.shaderMaterial, THREE.LinePieces);
-
-
-					scene.add(self.axonMesh);
-
-				// ------ end init axons
+				self.initNeurons(loadedMeshVertices);
+				self.initAxons();
 
 				self.initialized = true;
 
@@ -436,14 +358,86 @@
 
 		};
 
+		NeuralNetwork.prototype.initNeurons = function (inputVertices) {
+
+			for (var i=0; i<inputVertices.length; i+=this.verticesSkipStep) {
+				var pos = inputVertices[i];
+				var n = new Neuron(pos.x, pos.y, pos.z);
+				this.allNeurons.push(n);
+				this.neuronsGeom.vertices.push(n);
+			}
+
+			// neuron mesh
+			this.neuronParticles = new THREE.PointCloud(this.neuronsGeom, this.neuronMaterial);
+			scene.add(this.neuronParticles);
+
+		};
+
+		NeuralNetwork.prototype.initAxons = function () {
+
+			var allNeuronsLength = this.allNeurons.length;
+			for (var j=0; j<allNeuronsLength; j++) {
+				var n1 = this.allNeurons[j];
+				for (var k=j+1; k<allNeuronsLength; k++) {
+					var n2 = this.allNeurons[k];
+					// connect neuron if distance ... and limit connection per neuron to not more than x
+					if (n1 !== n2 && n1.distanceTo(n2) < this.maxAxonDist &&
+						n1.connection.length < this.maxConnectionPerNeuron &&
+						n2.connection.length < this.maxConnectionPerNeuron)
+					{
+						var connectedAxon = n1.connectNeuronTo(n2);
+						this.constructAxonArrayBuffer(connectedAxon);
+					}
+				}
+			}
+
+			// *** attirbute size must bigger than its content ***
+			var axonIndices = new Uint32Array(this.axonIndices.length);
+			var axonPositions = new Float32Array(this.axonPositions.length);
+			var axonOpacities = new Float32Array(this.shaderAttributes.opacityAttr.value.length);
+
+			// transfer temp-array to arrayBuffer
+			transferToArrayBuffer(this.axonIndices, axonIndices);
+			transferToArrayBuffer(this.axonPositions, axonPositions);
+			transferToArrayBuffer(this.shaderAttributes.opacityAttr.value, axonOpacities);
+
+			function transferToArrayBuffer(fromArr, toArr) {
+				for (i=0; i<toArr.length; i++) {
+					toArr[i] = fromArr[i];
+				}
+			}
+
+			this.axonGeom.addAttribute( 'index', new THREE.BufferAttribute(axonIndices, 1) );
+			this.axonGeom.addAttribute( 'position', new THREE.BufferAttribute(axonPositions, 3) );
+			this.axonGeom.addAttribute( 'opacityAttr', new THREE.BufferAttribute(axonOpacities, 1) );
+
+
+			// axons mesh
+			this.shaderMaterial = new THREE.ShaderMaterial( {
+				uniforms:       this.shaderUniforms,
+				attributes:     this.shaderAttributes,
+				vertexShader:   document.getElementById('vertexshader-axon').textContent,
+				fragmentShader: document.getElementById('fragmentshader-axon').textContent,
+				blending:       THREE.AdditiveBlending,
+				// depthTest:      false,
+				transparent:    true,
+			});
+
+			this.axonMesh = new THREE.Line(this.axonGeom, this.shaderMaterial, THREE.LinePieces);
+
+			scene.add(this.axonMesh);
+
+		};
+
 		NeuralNetwork.prototype.update = function () {
 
 			if (!this.initialized) return;
 
-			// update neurons state and release signal
+			
 			var n, ii;
 			var currentTime = Date.now();
 
+			// update neurons state and release signal
 			for (ii=0; ii<this.allNeurons.length; ii++) {
 
 				n = this.allNeurons[ii];
@@ -500,16 +494,17 @@
 
 			// update info for GUI
 			this.updateInfo();
-			
+
 		};
 
-		NeuralNetwork.prototype.addAxonToBuffer = function (axon) {		// add vertices to arrayBuffer and generate indexBuffer
+		// add vertices to temp-arrayBuffer, generate temp-indexBuffer and temp-opacityArrayBuffer 
+		NeuralNetwork.prototype.constructAxonArrayBuffer = function (axon) {
 			this.allAxons.push(axon);
 			var vertices = axon.geom.vertices;
 			var numVerts = vertices.length;
 
 			// &&&&&&&&&&&&&&&&&&&&&^^^^^^^^^^^^^^^^^^^^^
-			var opacity = THREE.Math.randFloat(0.05, 0.2);
+			// var opacity = THREE.Math.randFloat(0.001, 0.1);
 
 			for (var i=0; i<numVerts; i++) {
 
@@ -519,6 +514,7 @@
 					var idx = this.axonNextPositionsIndex;
 					this.axonIndices.push(idx, idx+1);
 
+					var opacity = THREE.Math.randFloat(0.002, 0.2);
 					this.shaderAttributes.opacityAttr.value.push(opacity, opacity);
 
 				}
@@ -542,14 +538,14 @@
 		};
 
 		NeuralNetwork.prototype.updateSettings = function () {
-			this.axonMat.opacity = this.axonOpacity;
-			this.axonMat.color.setHex(this.axonColor);
+
 			this.neuronMaterial.opacity = this.neuronOpacity;
 			this.neuronMaterial.color.setHex(this.neuronColor);
 			this.neuronMaterial.size = this.neuronSize;
 
 			this.shaderUniforms.color.value.set(this.axonColor);
-			
+			this.shaderUniforms.opacityMultiplier.value = this.axonOpacityMultiplier;
+
 			this.particlePool.updateSettings();
 		};
 
@@ -611,7 +607,7 @@
 		gui_settings.add(neuralNet, 'signalMaxSpeed', 0.01, 0.1, 0.01).name('Signal Max Speed');
 		gui_settings.add(neuralNet, 'neuronSize', 0, 2).name('Neuron Size');
 		gui_settings.add(neuralNet, 'neuronOpacity', 0, 1.0).name('Neuron Opacity');
-		gui_settings.add(neuralNet, 'axonOpacity', 0, 0.5).name('Axon Opacity');
+		gui_settings.add(neuralNet, 'axonOpacityMultiplier', 0.0, 5.0).name('Axon Opacity Mult');
 		gui_settings.addColor(neuralNet.particlePool, 'pColor').name('Signal Color');
 		gui_settings.addColor(neuralNet, 'neuronColor').name('Neuron Color');
 		gui_settings.addColor(neuralNet, 'axonColor').name('Axon Color');
@@ -630,7 +626,7 @@
 
 		function updateGuiInfo() {
 			for (var i in gui_info.__controllers) {
-				gui_info.__controllers[i].updateDisplay(); 
+				gui_info.__controllers[i].updateDisplay();
 			}
 		}
 

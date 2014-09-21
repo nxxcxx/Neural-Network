@@ -25,13 +25,15 @@
 	<script type="x-shader/x-vertex" id="vertexshader-axon">
 
 
-		attribute float opacityAttr;
+		uniform float opacityMultiplier;
 
+		attribute float opacityAttr;
+		
 		varying float opacityNew;
 
 		void main() {
 
-			opacityNew = opacityAttr;
+			opacityNew = opacityAttr * opacityMultiplier;
 
 			gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0 );
 
