@@ -115,7 +115,7 @@
 			this.pGeom = new THREE.Geometry();
 			this.particles = this.pGeom.vertices;
 
-			this.offScreenPos = new THREE.Vector3(9999, 9999, 9999);	// ################# since version r68 PointCloud default frustumCull = true, so need to set to 'false' for this to work with oppScreenPos, else particles will dissappear
+			this.offScreenPos = new THREE.Vector3(9999, 9999, 9999);	// #CM0A r68 PointCloud default frustumCull = true(extended from Object3D), so need to set to 'false' for this to work with oppScreenPos, else particles will dissappear
 
 			this.pColor = 0xff4400;
 			this.pSize = 0.6;
@@ -135,7 +135,7 @@
 			});
 
 			this.pMesh = new THREE.PointCloud(this.pGeom, this.pMat);
-			this.pMesh.frustumCulled = false; // ################# since version r68 PointCloud default frustumCull = true, so need to set to 'false' for this to work with oppScreenPos, else particles will dissappear
+			this.pMesh.frustumCulled = false; // ref: #CM0A
 
 			scene.add(this.pMesh);
 
@@ -152,7 +152,7 @@
 			});
 
 			this.pMesh_outer = new THREE.PointCloud(this.pGeom, this.pMat_outer);
-			this.pMesh_outer.frustumCulled = false; // ################# since version r68 PointCloud default frustumCull = true, so need to set to 'false' for this to work with oppScreenPos, else particles will dissappear
+			this.pMesh_outer.frustumCulled = false; // ref:#CM0A
 
 			scene.add(this.pMesh_outer);
 
