@@ -420,7 +420,7 @@
 				fragmentShader: document.getElementById('fragmentshader-axon').textContent,
 				blending:       THREE.AdditiveBlending,
 				// depthTest:      false,
-				transparent:    true,
+				transparent:    true
 			});
 
 			this.axonMesh = new THREE.Line(this.axonGeom, this.shaderMaterial, THREE.LinePieces);
