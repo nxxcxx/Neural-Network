@@ -2,7 +2,6 @@
 
 (function main() { "use strict";
 
-
 	// Neuron ----------------------------------------------------------------
 
 		function Neuron(x, y, z) {
@@ -331,7 +330,7 @@
 			var loadedMesh, loadedMeshVertices;
 			var loader = new THREE.OBJLoader();
 
-			loader.load('models/brain_vertex.obj', function constructNeuralNetwork(loadedObject) {
+			loader.load('models/brain_vertex_low.obj', function constructNeuralNetwork(loadedObject) {
 
 				loadedMesh = loadedObject.children[0];
 				loadedMeshVertices = loadedMesh.geometry.vertices;
@@ -420,7 +419,7 @@
 				fragmentShader: document.getElementById('fragmentshader-axon').textContent,
 				blending:       THREE.AdditiveBlending,
 				// depthTest:      false,
-				transparent:    true,
+				transparent:    true
 			});
 
 			this.axonMesh = new THREE.Line(this.axonGeom, this.shaderMaterial, THREE.LinePieces);
