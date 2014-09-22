@@ -335,16 +335,6 @@
 				loadedMesh = loadedObject.children[0];
 				loadedMeshVertices = loadedMesh.geometry.vertices;
 
-				// render loadedMesh
-					loadedMesh.material = new THREE.MeshBasicMaterial({
-						transparent: true,
-						opacity: 0.05,
-						depthTest: false,
-						color: 0x0088ff,
-						blending: THREE.AdditiveBlending
-					});
-					scene.add(loadedObject);
-
 				self.initNeurons(loadedMeshVertices);
 				self.initAxons();
 
