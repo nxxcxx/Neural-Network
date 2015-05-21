@@ -19,16 +19,27 @@ module.exports = function ( grunt ) {
 			build: {
 				src: [ 'js/neuron.js', 'js/signal.js', 'js/particlePool.js', 'js/particle.js', 'js/axon.js', 'js/neuralNet.js',
 						 'js/loaders.js', 'js/scene.js', 'js/main.js', 'js/gui.js', 'js/run.js', 'js/events.js' ],
+
 				dest: 'js/build/app.js'
+			},
+			vendor: {
+				src: [ 'js/vendor/underscore.js', 'js/vendor/jquery.min.js', 'js/vendor/Detector.js', 'js/vendor/dat.gui.min.js',
+						 'js/vendor/stats.min.js', 'js/vendor/three.js', 'js/vendor/OrbitControls.js', 'js/vendor/OBJLoader.js' ],
+
+				dest: 'js/vendor/vendor-merge.js'
 			}
 		},
 		uglify: {
-			options: {
-				sourceMap: true
-			},
+			options: {},
 			build: {
 				src: [ 'js/build/app.js' ],
-				dest: 'js/build/app.min.js'
+				dest: 'js/build/app.min.js',
+				sourceMap: true
+			},
+			vendor: {
+				src: [ 'js/vendor/vendor-merge.js' ],
+				dest: 'js/vendor/vendor-merge.min.js',
+				sourceMap: false
 			}
 		},
 		watch: {
@@ -64,6 +75,6 @@ module.exports = function ( grunt ) {
 	// tasks
 	grunt.registerTask( 'default', [ 'watch' ] );
 	grunt.registerTask( 'serve', [ 'connect:server', 'watch' ] );
-	grunt.registerTask( 'build', [ 'concat', 'uglify' ] );
-
+	grunt.registerTask( 'build', [ 'concat:build', 'uglify:build' ] );
+	grunt.registerTask( 'vendor', [ 'concat:vendor', 'uglify:vendor' ] );
 };
