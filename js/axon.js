@@ -11,14 +11,13 @@ function Axon( neuronA, neuronB ) {
 	this.controlPointB = this.getControlPoint( neuronB, neuronA );
 	THREE.CubicBezierCurve3.call( this, this.neuronA, this.controlPointA, this.controlPointB, this.neuronB );
 
-	this.geom = new THREE.Geometry();
-	this.geom.vertices = this.calculateVertices();
+	this.vertices = this.getSubdividedVertices();
 
 }
 
 Axon.prototype = Object.create( THREE.CubicBezierCurve3.prototype );
 
-Axon.prototype.calculateVertices = function () {
+Axon.prototype.getSubdividedVertices = function () {
 	return this.getSpacedPoints( this.bezierSubdivision );
 };
 

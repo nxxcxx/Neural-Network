@@ -81,11 +81,11 @@ Signal.prototype.setConnection = function ( Connection ) {
 
 };
 
-Signal.prototype.travel = function () {
+Signal.prototype.travel = function ( deltaTime ) {
 
 	var pos;
 	if ( this.startingPoint === 'A' ) {
-		this.t += this.speed;
+		this.t += this.speed * deltaTime;
 		if ( this.t >= 1 ) {
 			this.t = 1;
 			this.alive = false;
@@ -94,7 +94,7 @@ Signal.prototype.travel = function () {
 		}
 
 	} else if ( this.startingPoint === 'B' ) {
-		this.t -= this.speed;
+		this.t -= this.speed * deltaTime;
 		if ( this.t <= 0 ) {
 			this.t = 0;
 			this.alive = false;
@@ -114,7 +114,7 @@ Signal.prototype.travel = function () {
 
 function ParticlePool( poolSize ) {
 
-	this.spriteTextureSignal = THREE.ImageUtils.loadTexture( "sprites/electric.png" );
+	this.spriteTextureSignal = TEXTURES.electric;
 
 	this.poolSize = poolSize;
 	this.pGeom = new THREE.Geometry();
@@ -129,6 +129,8 @@ function ParticlePool( poolSize ) {
 		this.particles[ ii ] = new Particle( this );
 	}
 
+	this.meshComponents = new THREE.Object3D();
+
 	// inner particle
 	this.pMat = new THREE.PointCloudMaterial( {
 		map: this.spriteTextureSignal,
@@ -142,24 +144,18 @@ function ParticlePool( poolSize ) {
 	this.pMesh = new THREE.PointCloud( this.pGeom, this.pMat );
 	this.pMesh.frustumCulled = false;
 
-	scene.add( this.pMesh );
+	this.meshComponents.add( this.pMesh );
 
 
 	// outer particle glow
-	this.pMat_outer = new THREE.PointCloudMaterial( {
-		map: this.spriteTextureSignal,
-		size: this.pSize * 10,
-		color: this.pColor,
-		blending: THREE.AdditiveBlending,
-		depthTest: false,
-		transparent: true,
-		opacity: 0.025
-	} );
+	this.pMat_outer = this.pMat.clone();
+	this.pMat_outer.size = this.pSize * 10;
+	this.pMat_outer.opacity = 0.04;
 
 	this.pMesh_outer = new THREE.PointCloud( this.pGeom, this.pMat_outer );
 	this.pMesh_outer.frustumCulled = false;
 
-	scene.add( this.pMesh_outer );
+	this.meshComponents.add( this.pMesh_outer );
 
 }
 
@@ -180,7 +176,6 @@ ParticlePool.prototype.getParticle = function () {
 
 	console.error( "ParticlePool.prototype.getParticle return null" );
 	return null;
-
 
 };
 
@@ -234,14 +229,13 @@ function Axon( neuronA, neuronB ) {
 	this.controlPointB = this.getControlPoint( neuronB, neuronA );
 	THREE.CubicBezierCurve3.call( this, this.neuronA, this.controlPointA, this.controlPointB, this.neuronB );
 
-	this.geom = new THREE.Geometry();
-	this.geom.vertices = this.calculateVertices();
+	this.vertices = this.getSubdividedVertices();
 
 }
 
 Axon.prototype = Object.create( THREE.CubicBezierCurve3.prototype );
 
-Axon.prototype.calculateVertices = function () {
+Axon.prototype.getSubdividedVertices = function () {
 	return this.getSpacedPoints( this.bezierSubdivision );
 };
 
@@ -278,20 +272,30 @@ function NeuralNetwork() {
 
 	this.initialized = false;
 
-	this.settings = { // default
+	this.settings = {
+		/*default
+		verticesSkipStep       : 2,
+		maxAxonDist            : 10,
+		maxConnectionsPerNeuron: 6,
+		signalMinSpeed         : 1.75,
+		signalMaxSpeed         : 3.25,
+		currentMaxSignals      : 3000,
+		limitSignals           : 10000
+		*/
 
-		verticesSkipStep: 2, // 2
-		maxAxonDist: 10, // 10
-		maxConnectionsPerNeuron: 6, // 6
-		signalMinSpeed: 0.035,
-		signalMaxSpeed: 0.065,
-		currentMaxSignals: 8000,
-		limitSignals: 20000
+		verticesSkipStep: 2,
+		maxAxonDist: 10,
+		maxConnectionsPerNeuron: 6,
+		signalMinSpeed: 1.75,
+		signalMaxSpeed: 3.25,
+		currentMaxSignals: 3000,
+		limitSignals: 10000
 
 	};
-	this.settings.particlePool = new ParticlePool( this.settings.limitSignals );
 
 	this.meshComponents = new THREE.Object3D();
+	this.particlePool = new ParticlePool( this.settings.limitSignals );
+	this.meshComponents.add( this.particlePool.meshComponents );
 
 	// NN component containers
 	this.components = {
@@ -328,7 +332,7 @@ function NeuralNetwork() {
 
 	// neuron
 	this.neuronSizeMultiplier = 1.0;
-	this.spriteTextureNeuron = THREE.ImageUtils.loadTexture( "sprites/electric.png" );
+	this.spriteTextureNeuron = TEXTURES.electric;
 	this.neuronColor = '#ffffff';
 	this.neuronOpacity = 0.75;
 	this.neuronsGeom = new THREE.Geometry();
@@ -385,14 +389,14 @@ function NeuralNetwork() {
 
 NeuralNetwork.prototype.initNeuralNetwork = function () {
 
-	this.initNeurons( OBJ.brain.geometry.vertices );
+	this.initNeurons( OBJ_MODELS.brain.geometry.vertices );
 	this.initAxons();
 
-	this.neuronShaderMaterial.vertexShader = shaderContainer.neuronVert;
-	this.neuronShaderMaterial.fragmentShader = shaderContainer.neuronFrag;
+	this.neuronShaderMaterial.vertexShader = SHADER_CONTAINER.neuronVert;
+	this.neuronShaderMaterial.fragmentShader = SHADER_CONTAINER.neuronFrag;
 
-	this.axonShaderMaterial.vertexShader = shaderContainer.axonVert;
-	this.axonShaderMaterial.fragmentShader = shaderContainer.axonFrag;
+	this.axonShaderMaterial.vertexShader = SHADER_CONTAINER.axonVert;
+	this.axonShaderMaterial.fragmentShader = SHADER_CONTAINER.axonFrag;
 
 	this.initialized = true;
 
@@ -479,7 +483,7 @@ NeuralNetwork.prototype.initAxons = function () {
 
 };
 
-NeuralNetwork.prototype.update = function () {
+NeuralNetwork.prototype.update = function ( deltaTime ) {
 
 	if ( !this.initialized ) return;
 
@@ -507,7 +511,7 @@ NeuralNetwork.prototype.update = function () {
 		n.receivedSignal = false; // if neuron recieved signal but still in delay reset it
 	}
 
-	// reset all neurons and when there is 0 signal and trigger release signal at random neuron
+	// reset all neurons and when there is no signal and trigger release signal at random neuron
 	if ( this.components.allSignals.length === 0 ) {
 
 		this.resetAllNeurons();
@@ -515,10 +519,10 @@ NeuralNetwork.prototype.update = function () {
 
 	}
 
-	// update and remove signals
+	// update and remove dead signals
 	for ( var j = this.components.allSignals.length - 1; j >= 0; j-- ) {
 		var s = this.components.allSignals[ j ];
-		s.travel();
+		s.travel( deltaTime );
 
 		if ( !s.alive ) {
 			s.particle.free();
@@ -533,26 +537,22 @@ NeuralNetwork.prototype.update = function () {
 	}
 
 	// update particle pool vertices
-	this.settings.particlePool.update();
+	this.particlePool.update();
 
 	// update info for GUI
 	this.updateInfo();
 
 };
 
-// add vertices to temp-arrayBuffer, generate temp-indexBuffer and temp-opacityArrayBuffer
 NeuralNetwork.prototype.constructAxonArrayBuffer = function ( axon ) {
 	this.components.allAxons.push( axon );
-	var vertices = axon.geom.vertices;
-	var numVerts = vertices.length;
+	var vertices = axon.vertices;
 
-	// var opacity = THREE.Math.randFloat(0.001, 0.1);
-
-	for ( var i = 0; i < numVerts; i++ ) {
+	for ( var i = 0; i < vertices.length; i++ ) {
 
 		this.axonPositions.push( vertices[ i ].x, vertices[ i ].y, vertices[ i ].z );
 
-		if ( i < numVerts - 1 ) {
+		if ( i < vertices.length - 1 ) {
 			var idx = this.axonNextPositionsIndex;
 			this.axonIndices.push( idx, idx + 1 );
 
@@ -566,7 +566,7 @@ NeuralNetwork.prototype.constructAxonArrayBuffer = function ( axon ) {
 };
 
 NeuralNetwork.prototype.releaseSignalAt = function ( neuron ) {
-	var signals = neuron.createSignal( this.settings.particlePool, this.settings.signalMinSpeed, this.settings.signalMaxSpeed );
+	var signals = neuron.createSignal( this.particlePool, this.settings.signalMinSpeed, this.settings.signalMaxSpeed );
 	for ( var ii = 0; ii < signals.length; ii++ ) {
 		var s = signals[ ii ];
 		this.components.allSignals.push( s );
@@ -586,7 +586,7 @@ NeuralNetwork.prototype.resetAllNeurons = function () {
 		n.reset();
 
 	}
-	console.log( 'numPassive =', this.numPassive );
+	// console.log( 'numPassive =', this.numPassive );
 
 };
 
@@ -610,7 +610,7 @@ NeuralNetwork.prototype.updateSettings = function () {
 	this.axonUniforms.color.value.set( this.axonColor );
 	this.axonUniforms.opacityMultiplier.value = this.axonOpacityMultiplier;
 
-	this.settings.particlePool.updateSettings();
+	this.particlePool.updateSettings();
 
 
 };
@@ -624,12 +624,12 @@ NeuralNetwork.prototype.testChangOpcAttr = function () {
 	this.axonGeom.attributes.opacity.needsUpdate = true;
 };
 
-// Loaders --------------------------------------------------------
+// Assets & Loaders --------------------------------------------------------
 
 var loadingManager = new THREE.LoadingManager();
 loadingManager.onLoad = function () {
 
-	document.getElementById( 'loading' ).style.display = 'none'; // hide loading animation when finish loading model
+	document.getElementById( 'loading' ).style.display = 'none'; // hide loading animation when finished
 	console.log( 'Done.' );
 
 	main();
@@ -646,15 +646,14 @@ loadingManager.onProgress = function ( item, loaded, total ) {
 
 var shaderLoader = new THREE.XHRLoader( loadingManager );
 shaderLoader.setResponseType( 'text' );
-shaderLoader.showStatus = true;
 
-shaderLoader.loadMultiple = function ( shaderContainer, urlObj ) {
+shaderLoader.loadMultiple = function ( SHADER_CONTAINER, urlObj ) {
 
 	_.each( urlObj, function ( value, key ) {
 
 		shaderLoader.load( value, function ( shader ) {
 
-			shaderContainer[ key ] = shader;
+			SHADER_CONTAINER[ key ] = shader;
 
 		} );
 
@@ -662,8 +661,8 @@ shaderLoader.loadMultiple = function ( shaderContainer, urlObj ) {
 
 };
 
-var shaderContainer = {};
-shaderLoader.loadMultiple( shaderContainer, {
+var SHADER_CONTAINER = {};
+shaderLoader.loadMultiple( SHADER_CONTAINER, {
 
 	neuronVert: 'shaders/neuron.vert',
 	neuronFrag: 'shaders/neuron.frag',
@@ -675,15 +674,22 @@ shaderLoader.loadMultiple( shaderContainer, {
 
 
 
-var OBJ = {};
+var OBJ_MODELS = {};
 var OBJloader = new THREE.OBJLoader( loadingManager );
-
 OBJloader.load( 'models/brain_vertex_low.obj', function ( model ) {
 
-	mesh = model.children[ 0 ];
-	OBJ.brain = mesh;
+	OBJ_MODELS.brain = model.children[ 0 ];
 
-} ); // end of loader
+} );
+
+
+var TEXTURES = {};
+var textureLoader = new THREE.TextureLoader( loadingManager );
+textureLoader.load( 'sprites/electric.png', function ( tex ) {
+
+	TEXTURES.electric = tex;
+
+} );
 
 // Scene --------------------------------------------------------
 /* exported updateHelpers */
@@ -716,7 +722,7 @@ container = document.getElementById( 'canvas-container' );
 scene = new THREE.Scene();
 
 // ---- Camera
-camera = new THREE.PerspectiveCamera( 75, screenRatio, 10, 100000 );
+camera = new THREE.PerspectiveCamera( 75, screenRatio, 10, 5000 );
 // camera orbit control
 cameraCtrl = new THREE.OrbitControls( camera, container );
 cameraCtrl.object.position.y = 150;
@@ -753,6 +759,7 @@ function updateHelpers() {
 	gridHelper.visible = sceneSettings.enableGridHelper;
 }
 
+/*
 // ---- Lights
 // back light
 light = new THREE.DirectionalLight( 0xffffff, 0.8 );
@@ -767,9 +774,10 @@ scene.add( light );
 // ambient
 light = new THREE.AmbientLight( 0x111111 );
 scene.add( light );
+*/
 
 // Main --------------------------------------------------------
-/* exported main */
+/* exported main, updateGuiInfo */
 
 var gui, gui_info, gui_settings;
 
@@ -778,7 +786,17 @@ function main() {
 	var neuralNet = window.neuralNet = new NeuralNetwork();
 	scene.add( neuralNet.meshComponents );
 
-	// ---------- GUI ----------
+	initGui();
+
+	run();
+
+}
+
+// GUI --------------------------------------------------------
+/* exported iniGui, updateGuiInfo */
+
+function initGui() {
+
 	gui = new dat.GUI();
 	gui.width = 270;
 
@@ -790,30 +808,32 @@ function main() {
 
 	gui_settings = gui.addFolder( 'Settings' );
 	gui_settings.add( neuralNet.settings, 'currentMaxSignals', 0, neuralNet.settings.limitSignals ).name( 'Max Signals' );
-	gui_settings.add( neuralNet.settings.particlePool, 'pSize', 0.2, 2 ).name( 'Signal Size' );
-	gui_settings.add( neuralNet.settings, 'signalMinSpeed', 0.01, 0.1, 0.01 ).name( 'Signal Min Speed' );
-	gui_settings.add( neuralNet.settings, 'signalMaxSpeed', 0.01, 0.1, 0.01 ).name( 'Signal Max Speed' );
+	gui_settings.add( neuralNet.particlePool, 'pSize', 0.2, 2 ).name( 'Signal Size' );
+	gui_settings.add( neuralNet.settings, 'signalMinSpeed', 0.0, 8.0, 0.01 ).name( 'Signal Min Speed' );
+	gui_settings.add( neuralNet.settings, 'signalMaxSpeed', 0.0, 8.0, 0.01 ).name( 'Signal Max Speed' );
 	gui_settings.add( neuralNet, 'neuronSizeMultiplier', 0, 2 ).name( 'Neuron Size Mult' );
 	gui_settings.add( neuralNet, 'neuronOpacity', 0, 1.0 ).name( 'Neuron Opacity' );
 	gui_settings.add( neuralNet, 'axonOpacityMultiplier', 0.0, 5.0 ).name( 'Axon Opacity Mult' );
-	gui_settings.addColor( neuralNet.settings.particlePool, 'pColor' ).name( 'Signal Color' );
+	gui_settings.addColor( neuralNet.particlePool, 'pColor' ).name( 'Signal Color' );
 	gui_settings.addColor( neuralNet, 'neuronColor' ).name( 'Neuron Color' );
 	gui_settings.addColor( neuralNet, 'axonColor' ).name( 'Axon Color' );
 	gui_settings.addColor( sceneSettings, 'bgColor' ).name( 'Background' );
 
 	gui_info.open();
-	// gui_settings.open();
+	gui_settings.open();
 
 	for ( var i = 0; i < gui_settings.__controllers.length; i++ ) {
 		gui_settings.__controllers[ i ].onChange( updateNeuralNetworkSettings );
 	}
 
-	run();
-
 }
 
 function updateNeuralNetworkSettings() {
 	neuralNet.updateSettings();
+	if ( neuralNet.settings.signalMinSpeed > neuralNet.settings.signalMaxSpeed ) {
+		neuralNet.settings.signalMaxSpeed = neuralNet.settings.signalMinSpeed;
+		gui_settings.__controllers[ 3 ].updateDisplay();
+	}
 }
 
 function updateGuiInfo() {
@@ -830,18 +850,13 @@ function update() {
 
 	if ( !sceneSettings.pause ) {
 
-		neuralNet.update();
-
-		// if ( FRAME_COUNT % 60 == 0 ) {
-			// PROFILER.report();
-		// }
-
+		var deltaTime = clock.getDelta();
+		neuralNet.update( deltaTime );
 		updateGuiInfo();
 
 	}
 
 }
-
 
 // ----  draw loop
 function run() {
@@ -864,8 +879,8 @@ window.addEventListener( 'keypress', function ( event ) {
 
 	switch ( key ) {
 
-		// case 32:/*space bar*/ sceneSettings.pause = !sceneSettings.pause;
-		// 	break;
+		case 32:/*space bar*/ sceneSettings.pause = !sceneSettings.pause;
+			break;
 
 		case 65:/*A*/
 		case 97:/*a*/ sceneSettings.enableGridHelper = !sceneSettings.enableGridHelper;

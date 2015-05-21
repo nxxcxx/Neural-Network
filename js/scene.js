@@ -29,7 +29,7 @@ container = document.getElementById( 'canvas-container' );
 scene = new THREE.Scene();
 
 // ---- Camera
-camera = new THREE.PerspectiveCamera( 75, screenRatio, 10, 100000 );
+camera = new THREE.PerspectiveCamera( 75, screenRatio, 10, 5000 );
 // camera orbit control
 cameraCtrl = new THREE.OrbitControls( camera, container );
 cameraCtrl.object.position.y = 150;
@@ -66,6 +66,7 @@ function updateHelpers() {
 	gridHelper.visible = sceneSettings.enableGridHelper;
 }
 
+/*
 // ---- Lights
 // back light
 light = new THREE.DirectionalLight( 0xffffff, 0.8 );
@@ -80,3 +81,4 @@ scene.add( light );
 // ambient
 light = new THREE.AmbientLight( 0x111111 );
 scene.add( light );
+*/

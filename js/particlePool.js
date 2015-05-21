@@ -2,7 +2,7 @@
 
 function ParticlePool( poolSize ) {
 
-	this.spriteTextureSignal = THREE.ImageUtils.loadTexture( "sprites/electric.png" );
+	this.spriteTextureSignal = TEXTURES.electric;
 
 	this.poolSize = poolSize;
 	this.pGeom = new THREE.Geometry();
@@ -17,6 +17,8 @@ function ParticlePool( poolSize ) {
 		this.particles[ ii ] = new Particle( this );
 	}
 
+	this.meshComponents = new THREE.Object3D();
+
 	// inner particle
 	this.pMat = new THREE.PointCloudMaterial( {
 		map: this.spriteTextureSignal,
@@ -30,24 +32,18 @@ function ParticlePool( poolSize ) {
 	this.pMesh = new THREE.PointCloud( this.pGeom, this.pMat );
 	this.pMesh.frustumCulled = false;
 
-	scene.add( this.pMesh );
+	this.meshComponents.add( this.pMesh );
 
 
 	// outer particle glow
-	this.pMat_outer = new THREE.PointCloudMaterial( {
-		map: this.spriteTextureSignal,
-		size: this.pSize * 10,
-		color: this.pColor,
-		blending: THREE.AdditiveBlending,
-		depthTest: false,
-		transparent: true,
-		opacity: 0.025
-	} );
+	this.pMat_outer = this.pMat.clone();
+	this.pMat_outer.size = this.pSize * 10;
+	this.pMat_outer.opacity = 0.04;
 
 	this.pMesh_outer = new THREE.PointCloud( this.pGeom, this.pMat_outer );
 	this.pMesh_outer.frustumCulled = false;
 
-	scene.add( this.pMesh_outer );
+	this.meshComponents.add( this.pMesh_outer );
 
 }
 
@@ -68,7 +64,6 @@ ParticlePool.prototype.getParticle = function () {
 
 	console.error( "ParticlePool.prototype.getParticle return null" );
 	return null;
-
 
 };
 

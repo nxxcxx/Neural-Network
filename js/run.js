@@ -6,18 +6,13 @@ function update() {
 
 	if ( !sceneSettings.pause ) {
 
-		neuralNet.update();
-
-		// if ( FRAME_COUNT % 60 == 0 ) {
-			// PROFILER.report();
-		// }
-
+		var deltaTime = clock.getDelta();
+		neuralNet.update( deltaTime );
 		updateGuiInfo();
 
 	}
 
 }
-
 
 // ----  draw loop
 function run() {

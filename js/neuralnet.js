@@ -4,20 +4,30 @@ function NeuralNetwork() {
 
 	this.initialized = false;
 
-	this.settings = { // default
+	this.settings = {
+		/*default
+		verticesSkipStep       : 2,
+		maxAxonDist            : 10,
+		maxConnectionsPerNeuron: 6,
+		signalMinSpeed         : 1.75,
+		signalMaxSpeed         : 3.25,
+		currentMaxSignals      : 3000,
+		limitSignals           : 10000
+		*/
 
-		verticesSkipStep: 2, // 2
-		maxAxonDist: 10, // 10
-		maxConnectionsPerNeuron: 6, // 6
-		signalMinSpeed: 0.035,
-		signalMaxSpeed: 0.065,
-		currentMaxSignals: 8000,
-		limitSignals: 20000
+		verticesSkipStep: 2,
+		maxAxonDist: 10,
+		maxConnectionsPerNeuron: 6,
+		signalMinSpeed: 1.75,
+		signalMaxSpeed: 3.25,
+		currentMaxSignals: 3000,
+		limitSignals: 10000
 
 	};
-	this.settings.particlePool = new ParticlePool( this.settings.limitSignals );
 
 	this.meshComponents = new THREE.Object3D();
+	this.particlePool = new ParticlePool( this.settings.limitSignals );
+	this.meshComponents.add( this.particlePool.meshComponents );
 
 	// NN component containers
 	this.components = {
@@ -54,7 +64,7 @@ function NeuralNetwork() {
 
 	// neuron
 	this.neuronSizeMultiplier = 1.0;
-	this.spriteTextureNeuron = THREE.ImageUtils.loadTexture( "sprites/electric.png" );
+	this.spriteTextureNeuron = TEXTURES.electric;
 	this.neuronColor = '#ffffff';
 	this.neuronOpacity = 0.75;
 	this.neuronsGeom = new THREE.Geometry();
@@ -111,14 +121,14 @@ function NeuralNetwork() {
 
 NeuralNetwork.prototype.initNeuralNetwork = function () {
 
-	this.initNeurons( OBJ.brain.geometry.vertices );
+	this.initNeurons( OBJ_MODELS.brain.geometry.vertices );
 	this.initAxons();
 
-	this.neuronShaderMaterial.vertexShader = shaderContainer.neuronVert;
-	this.neuronShaderMaterial.fragmentShader = shaderContainer.neuronFrag;
+	this.neuronShaderMaterial.vertexShader = SHADER_CONTAINER.neuronVert;
+	this.neuronShaderMaterial.fragmentShader = SHADER_CONTAINER.neuronFrag;
 
-	this.axonShaderMaterial.vertexShader = shaderContainer.axonVert;
-	this.axonShaderMaterial.fragmentShader = shaderContainer.axonFrag;
+	this.axonShaderMaterial.vertexShader = SHADER_CONTAINER.axonVert;
+	this.axonShaderMaterial.fragmentShader = SHADER_CONTAINER.axonFrag;
 
 	this.initialized = true;
 
@@ -205,7 +215,7 @@ NeuralNetwork.prototype.initAxons = function () {
 
 };
 
-NeuralNetwork.prototype.update = function () {
+NeuralNetwork.prototype.update = function ( deltaTime ) {
 
 	if ( !this.initialized ) return;
 
@@ -233,7 +243,7 @@ NeuralNetwork.prototype.update = function () {
 		n.receivedSignal = false; // if neuron recieved signal but still in delay reset it
 	}
 
-	// reset all neurons and when there is 0 signal and trigger release signal at random neuron
+	// reset all neurons and when there is no signal and trigger release signal at random neuron
 	if ( this.components.allSignals.length === 0 ) {
 
 		this.resetAllNeurons();
@@ -241,10 +251,10 @@ NeuralNetwork.prototype.update = function () {
 
 	}
 
-	// update and remove signals
+	// update and remove dead signals
 	for ( var j = this.components.allSignals.length - 1; j >= 0; j-- ) {
 		var s = this.components.allSignals[ j ];
-		s.travel();
+		s.travel( deltaTime );
 
 		if ( !s.alive ) {
 			s.particle.free();
@@ -259,26 +269,22 @@ NeuralNetwork.prototype.update = function () {
 	}
 
 	// update particle pool vertices
-	this.settings.particlePool.update();
+	this.particlePool.update();
 
 	// update info for GUI
 	this.updateInfo();
 
 };
 
-// add vertices to temp-arrayBuffer, generate temp-indexBuffer and temp-opacityArrayBuffer
 NeuralNetwork.prototype.constructAxonArrayBuffer = function ( axon ) {
 	this.components.allAxons.push( axon );
-	var vertices = axon.geom.vertices;
-	var numVerts = vertices.length;
+	var vertices = axon.vertices;
 
-	// var opacity = THREE.Math.randFloat(0.001, 0.1);
-
-	for ( var i = 0; i < numVerts; i++ ) {
+	for ( var i = 0; i < vertices.length; i++ ) {
 
 		this.axonPositions.push( vertices[ i ].x, vertices[ i ].y, vertices[ i ].z );
 
-		if ( i < numVerts - 1 ) {
+		if ( i < vertices.length - 1 ) {
 			var idx = this.axonNextPositionsIndex;
 			this.axonIndices.push( idx, idx + 1 );
 
@@ -292,7 +298,7 @@ NeuralNetwork.prototype.constructAxonArrayBuffer = function ( axon ) {
 };
 
 NeuralNetwork.prototype.releaseSignalAt = function ( neuron ) {
-	var signals = neuron.createSignal( this.settings.particlePool, this.settings.signalMinSpeed, this.settings.signalMaxSpeed );
+	var signals = neuron.createSignal( this.particlePool, this.settings.signalMinSpeed, this.settings.signalMaxSpeed );
 	for ( var ii = 0; ii < signals.length; ii++ ) {
 		var s = signals[ ii ];
 		this.components.allSignals.push( s );
@@ -312,7 +318,7 @@ NeuralNetwork.prototype.resetAllNeurons = function () {
 		n.reset();
 
 	}
-	console.log( 'numPassive =', this.numPassive );
+	// console.log( 'numPassive =', this.numPassive );
 
 };
 
@@ -336,7 +342,7 @@ NeuralNetwork.prototype.updateSettings = function () {
 	this.axonUniforms.color.value.set( this.axonColor );
 	this.axonUniforms.opacityMultiplier.value = this.axonOpacityMultiplier;
 
-	this.settings.particlePool.updateSettings();
+	this.particlePool.updateSettings();
 
 
 };

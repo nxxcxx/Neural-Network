@@ -1,9 +1,9 @@
-// Loaders --------------------------------------------------------
+// Assets & Loaders --------------------------------------------------------
 
 var loadingManager = new THREE.LoadingManager();
 loadingManager.onLoad = function () {
 
-	document.getElementById( 'loading' ).style.display = 'none'; // hide loading animation when finish loading model
+	document.getElementById( 'loading' ).style.display = 'none'; // hide loading animation when finished
 	console.log( 'Done.' );
 
 	main();
@@ -20,15 +20,14 @@ loadingManager.onProgress = function ( item, loaded, total ) {
 
 var shaderLoader = new THREE.XHRLoader( loadingManager );
 shaderLoader.setResponseType( 'text' );
-shaderLoader.showStatus = true;
 
-shaderLoader.loadMultiple = function ( shaderContainer, urlObj ) {
+shaderLoader.loadMultiple = function ( SHADER_CONTAINER, urlObj ) {
 
 	_.each( urlObj, function ( value, key ) {
 
 		shaderLoader.load( value, function ( shader ) {
 
-			shaderContainer[ key ] = shader;
+			SHADER_CONTAINER[ key ] = shader;
 
 		} );
 
@@ -36,8 +35,8 @@ shaderLoader.loadMultiple = function ( shaderContainer, urlObj ) {
 
 };
 
-var shaderContainer = {};
-shaderLoader.loadMultiple( shaderContainer, {
+var SHADER_CONTAINER = {};
+shaderLoader.loadMultiple( SHADER_CONTAINER, {
 
 	neuronVert: 'shaders/neuron.vert',
 	neuronFrag: 'shaders/neuron.frag',
@@ -49,12 +48,19 @@ shaderLoader.loadMultiple( shaderContainer, {
 
 
 
-var OBJ = {};
+var OBJ_MODELS = {};
 var OBJloader = new THREE.OBJLoader( loadingManager );
-
 OBJloader.load( 'models/brain_vertex_low.obj', function ( model ) {
 
-	mesh = model.children[ 0 ];
-	OBJ.brain = mesh;
+	OBJ_MODELS.brain = model.children[ 0 ];
 
-} ); // end of loader
+} );
+
+
+var TEXTURES = {};
+var textureLoader = new THREE.TextureLoader( loadingManager );
+textureLoader.load( 'sprites/electric.png', function ( tex ) {
+
+	TEXTURES.electric = tex;
+
+} );

@@ -25,11 +25,11 @@ Signal.prototype.setConnection = function ( Connection ) {
 
 };
 
-Signal.prototype.travel = function () {
+Signal.prototype.travel = function ( deltaTime ) {
 
 	var pos;
 	if ( this.startingPoint === 'A' ) {
-		this.t += this.speed;
+		this.t += this.speed * deltaTime;
 		if ( this.t >= 1 ) {
 			this.t = 1;
 			this.alive = false;
@@ -38,7 +38,7 @@ Signal.prototype.travel = function () {
 		}
 
 	} else if ( this.startingPoint === 'B' ) {
-		this.t -= this.speed;
+		this.t -= this.speed * deltaTime;
 		if ( this.t <= 0 ) {
 			this.t = 0;
 			this.alive = false;

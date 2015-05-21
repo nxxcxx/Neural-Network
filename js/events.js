@@ -6,8 +6,8 @@ window.addEventListener( 'keypress', function ( event ) {
 
 	switch ( key ) {
 
-		// case 32:/*space bar*/ sceneSettings.pause = !sceneSettings.pause;
-		// 	break;
+		case 32:/*space bar*/ sceneSettings.pause = !sceneSettings.pause;
+			break;
 
 		case 65:/*A*/
 		case 97:/*a*/ sceneSettings.enableGridHelper = !sceneSettings.enableGridHelper;
