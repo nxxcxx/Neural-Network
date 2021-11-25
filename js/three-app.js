@@ -126,7 +126,7 @@ class ParticlePool {
     this.pMesh = new THREE.PointCloud(this.pGeom, this.pMat)
     this.pMesh.frustumCulled = false // ref: #CM0A
 
-    const scene = new THREE.Object3D()
+    // const scene = new THREE.Object3D()
     scene.add(this.pMesh)
 
     // outer particle glow
